@@ -72,14 +72,16 @@ instance dissectableList :: Dissectable List (Product (Clown List) (Joker List))
       Nil -> Left (L.reverse (j : js))
       c : cs' -> Right (Tuple (Product (Clown cs') (Joker (j : js))) c)
 
-mapP :: forall f d a b. Dissectable f d => (a -> b) -> f a -> f b
-mapP f xs = tailRec step (Left xs) where
+mapD :: forall f d a b. Dissectable f d => (a -> b) -> f a -> f b
+mapD f xs = tailRec step (Left xs) where
   step = moveRight >>> case _ of
            Left ys -> Done ys
            Right (Tuple dba a) -> Loop (Right (Tuple dba (f a)))
 
-traverseP :: forall m f d a b. Dissectable f d => MonadRec m => (a -> m b) -> f a -> m (f b)
-traverseP f xs = tailRecM step (Left xs) where
+traverseRec :: forall m f d a b. Dissectable f d => MonadRec m => (a -> m b) -> f a -> m (f b)
+traverseRec f xs = tailRecM step (Left xs) where
   step = moveRight >>> case _ of
            Left ys -> pure (Done ys)
            Right (Tuple dba a) -> Loop <<< Right <<< Tuple dba <$> f a
+
+--TODO: unfoldD, foldD, foldMD
