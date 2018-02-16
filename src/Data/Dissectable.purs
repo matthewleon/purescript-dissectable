@@ -27,20 +27,36 @@ instance dissectableArray :: Dissectable Array (Product (Clown List) (Joker List
   moveRight (Left js) =
     case A.head js of
       Nothing -> Left []
-      Just j  -> Right (Tuple (Product (Clown Nil) (Joker $ unsafePartial $ fromJust $ tail $ L.fromFoldable js)) j)
+      Just j  -> Right $ Tuple
+        (Product
+          (Clown Nil)
+          (Joker $ unsafePartial $ fromJust $ tail $ L.fromFoldable js))
+        j
   moveRight (Right (Tuple (Product (Clown cs) (Joker js)) c)) =
     case js of
-      Nil -> Left $ A.reverse $ A.fromFoldable $ c : cs
-      j : js' -> Right (Tuple (Product (Clown (c : cs)) (Joker js')) j)
+      Nil     -> Left  $ A.reverse $ A.fromFoldable $ c : cs
+      j : js' -> Right $ Tuple
+        (Product
+          (Clown $ c : cs)
+          (Joker js'))
+        j
 
   moveLeft (Left cs) =
     case A.head cs of
       Nothing -> Left []
-      Just c  -> Right (Tuple (Product (Clown $ unsafePartial $ fromJust $ tail $ L.fromFoldable cs) (Joker Nil)) c)
+      Just c  -> Right $ Tuple
+        (Product
+          (Clown $ unsafePartial $ fromJust $ tail $ L.fromFoldable cs)
+          (Joker Nil))
+        c
   moveLeft (Right (Tuple (Product (Clown cs) (Joker js)) j)) =
     case cs of
-      Nil -> Left $ A.reverse $ A.fromFoldable $ j : js
-      c : cs' -> Right (Tuple (Product (Clown cs') (Joker (j : js))) c)
+      Nil     -> Left  $ A.reverse $ A.fromFoldable $ j : js
+      c : cs' -> Right $ Tuple
+        (Product
+          (Clown cs')
+          (Joker (j : js)))
+        c
 
 instance dissectableList :: Dissectable List (Product (Clown List) (Joker List)) where
   moveRight (Left Nil) = Left Nil
