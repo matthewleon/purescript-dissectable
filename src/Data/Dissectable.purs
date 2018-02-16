@@ -14,6 +14,7 @@ import Data.List as L
 import Data.Maybe (Maybe(..))
 import Data.Traversable (class Traversable)
 import Data.Tuple (Tuple(..))
+import Data.Unfoldable (class Unfoldable, unfoldr)
 
 -- Largely cribbed from Phil Freeman's "Stack-Safe Traversals via Dissection"
 -- http://blog.functorial.com/posts/2017-06-18-Stack-Safe-Traversals-via-Dissection.html
@@ -81,10 +82,17 @@ mapD f xs = tailRec step (Left xs) where
            Left ys -> Done ys
            Right (Tuple dba a) -> Loop (Right (Tuple dba (f a)))
 
+toUnfoldable :: forall f g d. Dissectable f d => Unfoldable g => f ~> g
+toUnfoldable = unfoldr step <<< Left
+  where
+  step = moveRight >>> case _ of
+           Left xs                 -> Nothing
+           r@(Right (Tuple dba a)) -> Just $ Tuple a r
+
 traverseRec :: forall m f d a b. Dissectable f d => MonadRec m => (a -> m b) -> f a -> m (f b)
 traverseRec f xs = tailRecM step (Left xs) where
   step = moveRight >>> case _ of
            Left ys -> pure (Done ys)
            Right (Tuple dba a) -> Loop <<< Right <<< Tuple dba <$> f a
 
---TODO: unfoldD, foldD, foldMD
+--TODO: foldD, foldMD
