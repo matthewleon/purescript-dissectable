@@ -1,0 +1,21 @@
+{
+  "name": "purescript-dissectable",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "output"
+  ],
+  "dependencies": {
+    "purescript-bifunctors": "^3.0.0",
+    "purescript-foldable-traversable": "^3.7.1",
+    "purescript-either": "^3.1.0",
+    "purescript-arrays": "^4.2.2",
+    "purescript-lists": "^4.12.0"
+  },
+  "devDependencies": {
+    "purescript-minibench": "^1.0.1",
+    "purescript-eff": "^3.1.0",
+    "purescript-safely": "^3.0.0"
+  }
+}
