@@ -9,12 +9,11 @@ import Data.Bifunctor.Clown (Clown(..))
 import Data.Bifunctor.Joker (Joker(..))
 import Data.Bifunctor.Product (Product(..))
 import Data.Either (Either(..))
-import Data.List (List(..), reverse, tail, (:))
+import Data.List (List(..), (:))
 import Data.List as L
-import Data.Maybe (Maybe(..), fromJust)
+import Data.Maybe (Maybe(..))
 import Data.Traversable (class Traversable)
 import Data.Tuple (Tuple(..))
-import Partial.Unsafe (unsafePartial)
 
 -- Largely cribbed from Phil Freeman's "Stack-Safe Traversals via Dissection"
 -- http://blog.functorial.com/posts/2017-06-18-Stack-Safe-Traversals-via-Dissection.html
@@ -25,12 +24,12 @@ class (Traversable f, Bifunctor d) <= Dissectable f d | f -> d where
 
 instance dissectableArray :: Dissectable Array (Product (Clown List) (Joker List)) where
   moveRight (Left js) =
-    case A.head js of
-      Nothing -> Left []
-      Just j  -> Right $ Tuple
+    case L.uncons $ L.fromFoldable js of
+      Nothing                   -> Left []
+      Just {head: j, tail: js'} -> Right $ Tuple
         (Product
           (Clown Nil)
-          (Joker $ unsafePartial $ fromJust $ tail $ L.fromFoldable js))
+          (Joker js'))
         j
   moveRight (Right (Tuple (Product (Clown cs) (Joker js)) c)) =
     case js of
@@ -42,11 +41,11 @@ instance dissectableArray :: Dissectable Array (Product (Clown List) (Joker List
         j
 
   moveLeft (Left cs) =
-    case A.head cs of
-      Nothing -> Left []
-      Just c  -> Right $ Tuple
+    case L.uncons $ L.fromFoldable cs of
+      Nothing                   -> Left []
+      Just {head: c, tail: cs'} -> Right $ Tuple
         (Product
-          (Clown $ unsafePartial $ fromJust $ tail $ L.fromFoldable cs)
+          (Clown cs')
           (Joker Nil))
         c
   moveLeft (Right (Tuple (Product (Clown cs) (Joker js)) j)) =
@@ -63,14 +62,14 @@ instance dissectableList :: Dissectable List (Product (Clown List) (Joker List))
   moveRight (Left (j : js)) = Right (Tuple (Product (Clown Nil) (Joker js)) j)
   moveRight (Right (Tuple (Product (Clown cs) (Joker js)) c)) =
     case js of
-      Nil -> Left (reverse (c : cs))
+      Nil -> Left (L.reverse (c : cs))
       j : js' -> Right (Tuple (Product (Clown (c : cs)) (Joker js')) j)
 
   moveLeft (Left Nil) = Left Nil
   moveLeft (Left (c : cs)) = Right (Tuple (Product (Clown cs) (Joker Nil)) c)
   moveLeft (Right (Tuple (Product (Clown cs) (Joker js)) j)) =
     case cs of
-      Nil -> Left (reverse (j : js))
+      Nil -> Left (L.reverse (j : js))
       c : cs' -> Right (Tuple (Product (Clown cs') (Joker (j : js))) c)
 
 mapP :: forall f d a b. Dissectable f d => (a -> b) -> f a -> f b
