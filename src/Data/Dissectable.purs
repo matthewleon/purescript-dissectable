@@ -77,11 +77,13 @@ instance dissectableList :: Dissectable List (Product (Clown List) (Joker List))
       c : cs' -> Right (Tuple (Product (Clown cs') (Joker (j : js))) c)
 
 mapD :: forall f d a b. Dissectable f d => (a -> b) -> f a -> f b
-mapD f xs = tailRec step (Left xs) where
+mapD f = tailRec step <<< Left
+  where
   step = moveRight >>> case _ of
-           Left ys -> Done ys
+           Left xs -> Done xs
            Right (Tuple dba a) -> Loop (Right (Tuple dba (f a)))
 
+-- | Convert a `Dissectable` to any `Unfoldable` structure.
 toUnfoldable :: forall f g d. Dissectable f d => Unfoldable g => f ~> g
 toUnfoldable = unfoldr step <<< Left
   where
@@ -89,10 +91,15 @@ toUnfoldable = unfoldr step <<< Left
            Left xs                 -> Nothing
            r@(Right (Tuple dba a)) -> Just $ Tuple a r
 
-traverseRec :: forall m f d a b. Dissectable f d => MonadRec m => (a -> m b) -> f a -> m (f b)
-traverseRec f xs = tailRecM step (Left xs) where
+traverseRec
+  :: forall m f d a b
+   . Dissectable f d
+  => MonadRec m
+  => (a -> m b) -> f a -> m (f b)
+traverseRec f = tailRecM step <<< Left
+  where
   step = moveRight >>> case _ of
-           Left ys -> pure (Done ys)
+           Left xs -> pure $ Done xs
            Right (Tuple dba a) -> Loop <<< Right <<< Tuple dba <$> f a
 
 --TODO: foldD, foldMD
