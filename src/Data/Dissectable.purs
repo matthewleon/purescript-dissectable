@@ -24,7 +24,7 @@ class (Traversable f, Bifunctor d) <= Dissectable f d | f -> d where
   moveRight :: forall c j. Either (f j) (Tuple (d c j) c) -> Either (f c) (Tuple (d c j) j)
   moveLeft  :: forall c j. Either (f c) (Tuple (d c j) j) -> Either (f j) (Tuple (d c j) c)
 
--- | The `Dissectable` instance on `Array` uses `Lists` to represent its zipper.
+-- | The `Dissectable` instance of `Array` uses `Lists` to represent its zipper.
 -- | A more canonical instance would use `Arrays` for this purpose, at the cost
 -- | of O(n^2) traversal.
 instance dissectableArray :: Dissectable Array (Product (Clown List) (Joker List)) where
