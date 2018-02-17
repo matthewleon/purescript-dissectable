@@ -6,7 +6,10 @@ import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE, log)
 import Data.Array as A
 import Data.Dissectable as D
+import Data.Foldable (sum)
 import Data.List (List)
+import Data.Monoid.Additive (Additive(..))
+import Data.Newtype (ala)
 import Data.Unfoldable as U
 import Test.Assert (ASSERT, assert)
 
@@ -19,3 +22,10 @@ main = do
 
   log "check toUnfoldable"
   assert $ D.toUnfoldable arr == (U.range 0 9 :: List Int)
+  assert $ D.toUnfoldable arr == (A.toUnfoldable arr :: List Int)
+
+  log "check foldD"
+  assert $ D.foldD (+) 0 arr == sum arr
+
+  log "check foldMapD"
+  assert $ ala Additive D.foldMapD arr == sum arr
