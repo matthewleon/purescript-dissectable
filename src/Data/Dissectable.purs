@@ -92,3 +92,14 @@ traverseRec f = tailRecM step <<< Left
   step = moveRight >>> case _ of
            Left xs -> pure $ Done xs
            Right (Tuple dba a) -> Loop <<< Right <<< Tuple dba <$> f a
+
+sequenceRec
+  :: forall m f d a
+   . Dissectable f d
+  => MonadRec m
+  => f (m a) -> m (f a)
+sequenceRec = tailRecM step <<< Left
+  where
+  step = moveRight >>> case _ of
+           Left xs -> pure $ Done xs
+           Right (Tuple dba a) -> Loop <<< Right <<< Tuple dba <$> a
